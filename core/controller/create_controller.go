@@ -1,10 +1,7 @@
 package controllers
 
 import (
-	"errors"
-
 	"github.com/gofiber/fiber/v2"
-	"gorm.io/gorm"
 )
 
 // Create (POST /)

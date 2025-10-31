@@ -1,21 +1,38 @@
 package middleware
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"fmt"
+	"grf/core/exceptions"
+	"grf/domain/auth"
 
-func MiddlewarePermission(role string) fiber.Handler {
+	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
+)
+
+type PermissionMiddleware struct {
+	DB *gorm.DB
+}
+
+func NewPermissionMiddleware(db *gorm.DB) *PermissionMiddleware {
+	return &PermissionMiddleware{DB: db}
+}
+
+func (m *PermissionMiddleware) RequirePerm(module, action string) fiber.Handler {
 	return func(c *fiber.Ctx) error {
-		// user, ok := c.Locals("user").(*User)
-		// if !ok {
-		//    return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "Autenticação requerida"})
-		// }
+		userLocal := c.Locals("user")
+		if userLocal == nil {
+			return exceptions.NewError(401, "Usuário não autenticado", nil)
+		}
 
-		// if role == "admin" && !user.IsAdmin {
-		//    return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": "Permissão negada (Admin requerido)"})
-		// }
+		user, ok := userLocal.(*auth.User)
+		if !ok {
+			return exceptions.NewInternal(fmt.Errorf("c.Locals(\"user\") não é do tipo *auth.User"))
+		}
 
-		// if role == "self" {
-		//    // Lógica para verificar se o usuário é o dono do recurso (ex: c.Params("id"))
-		// }
+		if !user.HasPerm(m.DB, module, action) {
+			msg := fmt.Sprintf("Permissão necessária: %s.%s", module, action)
+			return exceptions.NewError(403, msg, nil)
+		}
 
 		return c.Next()
 	}

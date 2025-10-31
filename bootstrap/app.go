@@ -1,45 +1,57 @@
 package bootstrap
 
 import (
-	"fmt"
-	"github.com/go-playground/validator/v10"
+	"grf/bootstrap/database"
+	"grf/bootstrap/grf"
+	"grf/config"
+	"grf/core/exceptions"
+	"grf/core/middleware"
+	"grf/routes"
+	"time"
+
+	"github.com/goccy/go-json"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/logger"
-	"gorm.io/driver/sqlite" // (ou postgres)
-	"gorm.io/gorm"
 )
 
-// App armazena dependências compartilhadas
-type App struct {
-	FiberApp  *fiber.App
-	DB        *gorm.DB
-	Validator *validator.Validate
-}
-
-// NewApp cria e inicializa a instância da aplicação.
-func NewApp() *App {
-	// 1. Conectar ao Banco de Dados
-	// dsn := os.Getenv("DATABASE_URL")
-	// db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-
-	db, err := gorm.Open(sqlite.Open("prod.db"), &gorm.Config{})
+func NewApp() (*grf.App, error) {
+	cfg, err := config.LoadConfig("./")
 	if err != nil {
-		panic(fmt.Sprintf("Falha ao conectar ao banco de dados: %v", err))
+		return nil, err
+	}
+	db, err := database.ConnectDB(&cfg)
+	if err != nil {
+		return nil, err
 	}
 
-	// (AutoMigrate deve ser movido para main.go ou um script de migração)
-	// db.AutoMigrate(&models.User{})
+	app := fiber.New(fiber.Config{
+		AppName:      cfg.AppName,
+		ErrorHandler: exceptions.GlobalErrorHandler,
+		IdleTimeout:  time.Duration(cfg.ServerIdleTimeout) * time.Second,
+		ReadTimeout:  time.Duration(cfg.ServerIdleTimeout) * time.Second,
+		WriteTimeout: time.Duration(cfg.ServerIdleTimeout) * time.Second,
+		JSONEncoder:  json.Marshal,
+		JSONDecoder:  json.Unmarshal,
+	})
 
-	// 2. Inicializar o Validator
-	validate := validator.New()
-
-	// 3. Inicializar o Fiber
-	app := fiber.New()
 	app.Use(logger.New())
 
-	return &App{
+	authMw := middleware.NewAuthMiddleware(db, &cfg)
+	permMw := middleware.NewPermissionMiddleware(db)
+
+	var bootstrapedApp = &grf.App{
 		FiberApp:  app,
 		DB:        db,
-		Validator: validate,
+		Validator: GetValidator(),
+		Config:    &cfg,
+		AuthMw:    authMw,
+		PermMw:    permMw,
 	}
+	database.RegisterMigrations(
+		bootstrapedApp,
+	)
+	routes.RegisterRoutes(
+		bootstrapedApp,
+	)
+	return bootstrapedApp, nil
 }
