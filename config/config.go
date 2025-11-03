@@ -31,7 +31,7 @@ type Config struct {
 	JWTRefreshExpiresInDays int    `mapstructure:"JWT_REFRESH_EXPIRES_IN_DAYS"`
 }
 
-func LoadConfig(path string) (config Config, err error) {
+func LoadConfig(path string, configName string) (config Config, err error) {
 
 	viper.SetDefault("AppName", "GRF")
 	viper.SetDefault("DB_VENDOR", "sqlite")
@@ -42,9 +42,9 @@ func LoadConfig(path string) (config Config, err error) {
 	viper.SetDefault("DB_MAX_OPENED", 25)
 	viper.SetDefault("DB_MAX_LIFE_TIME_SECONDS", 60)
 
-	viper.SetDefault("ENV", "development") // Padrão seguro
+	viper.SetDefault("ENV", "development")
 
-	viper.SetDefault("SERVER_PORT", "1111")
+	viper.SetDefault("SERVER_PORT", "3000")
 	viper.SetDefault("SERVER_IDLE_TIMEOUT", "3")
 	viper.SetDefault("SERVER_READ_TIMEOUT", "3")
 	viper.SetDefault("SERVER_WRITE_TIMEOUT", "3")
@@ -55,7 +55,7 @@ func LoadConfig(path string) (config Config, err error) {
 
 	viper.AddConfigPath(path)
 	viper.SetConfigType("env")
-	viper.SetConfigName("app")
+	viper.SetConfigName(configName)
 
 	viper.AutomaticEnv()
 

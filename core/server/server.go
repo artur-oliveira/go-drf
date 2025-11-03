@@ -1,4 +1,4 @@
-package grf
+package server
 
 import (
 	"grf/config"

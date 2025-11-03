@@ -2,13 +2,18 @@ package main
 
 import (
 	"grf/bootstrap"
+	"grf/config"
 	"log"
 )
 
 func main() {
-	app, err := bootstrap.NewApp()
+	cfg, err := config.LoadConfig("./", "app")
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Fatal(app.FiberApp.Listen(":" + app.Config.DBPort))
+	app, err := bootstrap.NewApp(cfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Fatal(app.FiberApp.Listen(":" + app.Config.ServerPort))
 }

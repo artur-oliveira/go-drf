@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"grf/bootstrap/grf"
+	"grf/core/server"
 	"grf/domain/auth"
 
 	"github.com/gofiber/fiber/v2"
@@ -9,9 +9,8 @@ import (
 
 func RegisterAuthRoutes(
 	router fiber.Router,
-	app *grf.App,
+	app *server.App,
 ) {
-
 	userController := auth.NewDefaultUserController(app.DB, app.Validator)
 	groupController := auth.NewDefaultGroupController(app.DB, app.Validator)
 	permissionController := auth.NewDefaultPermissionController(app.DB, app.Validator)
@@ -21,9 +20,11 @@ func RegisterAuthRoutes(
 	authMw := app.AuthMw
 
 	authRoutes := router.Group("/auth")
-	authRoutes.Post("/token", authController.Login)
+	authRoutes.Post("/token", authController.ObtainToken)
+	authRoutes.Post("/refresh", authController.ObtainTokenRefresh)
 
 	authRoutes.Get("/me", authMw.RequireAuth, authController.GetMe)
+	authRoutes.Post("/change-password", authMw.RequireAuth, authController.ChangePassword)
 
 	userRoutes := router.Group("/users")
 	userRoutes.Use(authMw.RequireAuth)
@@ -46,6 +47,8 @@ func RegisterAuthRoutes(
 	groupRoutes.Delete("/:id", permMw.RequirePerm("auth", "delete_group"), groupController.Delete)
 
 	permissionRoutes := router.Group("/permissions")
+	permissionRoutes.Use(app.AuthMw.RequireAuth)
+
 	permissionRoutes.Get("/", permMw.RequirePerm("auth", "view_permission"), permissionController.List)
 	permissionRoutes.Post("/", permMw.RequirePerm("auth", "add_permission"), permissionController.Create)
 	permissionRoutes.Get("/:id", permMw.RequirePerm("auth", "view_permission"), permissionController.Retrieve)

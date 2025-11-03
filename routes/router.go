@@ -1,10 +1,10 @@
 package routes
 
 import (
-	"grf/bootstrap/grf"
+	"grf/core/server"
 )
 
-func RegisterRoutes(app *grf.App) {
+func RegisterRoutes(app *server.App) {
 	apiV1 := app.FiberApp.Group("/v1")
 	RegisterAuthRoutes(apiV1, app)
 }

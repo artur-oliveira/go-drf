@@ -1,11 +1,11 @@
 package bootstrap
 
 import (
-	"grf/bootstrap/database"
-	"grf/bootstrap/grf"
 	"grf/config"
 	"grf/core/exceptions"
 	"grf/core/middleware"
+	"grf/core/server"
+	"grf/database"
 	"grf/routes"
 	"time"
 
@@ -14,11 +14,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/logger"
 )
 
-func NewApp() (*grf.App, error) {
-	cfg, err := config.LoadConfig("./")
-	if err != nil {
-		return nil, err
-	}
+func NewApp(cfg config.Config) (*server.App, error) {
+
 	db, err := database.ConnectDB(&cfg)
 	if err != nil {
 		return nil, err
@@ -39,7 +36,7 @@ func NewApp() (*grf.App, error) {
 	authMw := middleware.NewAuthMiddleware(db, &cfg)
 	permMw := middleware.NewPermissionMiddleware(db)
 
-	var bootstrapedApp = &grf.App{
+	var bootstrapedApp = &server.App{
 		FiberApp:  app,
 		DB:        db,
 		Validator: GetValidator(),

@@ -23,7 +23,7 @@ func dialector(config *config.Config) gorm.Dialector {
 		)
 		return mysql.Open(dsn)
 	} else if config.DBVendor == "sqlite" {
-		return sqlite.Open(config.DBName + ".db")
+		return sqlite.Open(config.DBName)
 	} else {
 		log.Fatalf("Unsupported database vendor: %s", config.DBVendor)
 		return nil

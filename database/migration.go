@@ -1,12 +1,12 @@
 package database
 
 import (
-	"grf/bootstrap/grf"
+	"grf/core/server"
 	"grf/domain/auth"
 	"log"
 )
 
-func RegisterMigrations(app *grf.App) {
+func RegisterMigrations(app *server.App) {
 	log.Println("starting database migrations")
 
 	var allModels []interface{}
