@@ -11,7 +11,8 @@ type Response[T any] struct {
 	Count   *uint `json:"count"`
 }
 
-// IPagination Interface genérica de paginador
 type IPagination[T any] interface {
-	Paginate(c *fiber.Ctx, db *gorm.DB) (*Response[T], error)
+	Bind(c *fiber.Ctx) error
+
+	Paginate(db *gorm.DB) (*Response[T], error)
 }

@@ -10,6 +10,9 @@ import (
 type LimitOffsetPagination[T any] struct {
 	DefaultLimit int
 	MaxLimit     int
+
+	limit  int
+	offset int
 }
 
 func NewLimitOffsetPagination[T any](defaultLimit, maxLimit int) *LimitOffsetPagination[T] {
@@ -25,7 +28,7 @@ func NewLimitOffsetPagination[T any](defaultLimit, maxLimit int) *LimitOffsetPag
 	}
 }
 
-func (p *LimitOffsetPagination[T]) Paginate(c *fiber.Ctx, db *gorm.DB) (*Response[T], error) {
+func (p *LimitOffsetPagination[T]) Bind(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", strconv.Itoa(p.DefaultLimit)))
 	offset, _ := strconv.Atoi(c.Query("offset", "0"))
 
@@ -39,9 +42,14 @@ func (p *LimitOffsetPagination[T]) Paginate(c *fiber.Ctx, db *gorm.DB) (*Respons
 		offset = 0
 	}
 
+	p.limit = limit
+	p.offset = offset
+	return nil
+}
+
+func (p *LimitOffsetPagination[T]) Paginate(db *gorm.DB) (*Response[T], error) {
 	resp := &Response[T]{}
 	var results []T
-
 	var totalCount int64
 
 	if err := db.Model(&results).Count(&totalCount).Error; err != nil {
@@ -50,12 +58,12 @@ func (p *LimitOffsetPagination[T]) Paginate(c *fiber.Ctx, db *gorm.DB) (*Respons
 	countUint := uint(totalCount)
 	resp.Count = &countUint
 
-	if err := db.Limit(limit).Offset(offset).Find(&results).Error; err != nil {
+	if err := db.Limit(p.limit).Offset(p.offset).Find(&results).Error; err != nil {
 		return nil, err
 	}
 
 	resp.Results = results
-	resp.HasNext = (offset + limit) < int(totalCount)
+	resp.HasNext = (p.offset + p.limit) < int(totalCount)
 
 	return resp, nil
 }

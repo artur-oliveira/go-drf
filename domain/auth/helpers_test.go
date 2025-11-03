@@ -11,8 +11,12 @@ import (
 )
 
 var authTables = []string{
-	"auth_user_permissions", "auth_user_groups", "auth_group_permissions",
-	"auth_user", "auth_group", "auth_permission",
+	"auth_user_permissions",
+	"auth_user_groups",
+	"auth_group_permissions",
+	"auth_user",
+	"auth_group",
+	"auth_permission",
 }
 
 func clearAuthTables(db *gorm.DB) {

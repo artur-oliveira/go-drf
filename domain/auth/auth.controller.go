@@ -60,6 +60,7 @@ func (ac *Controller) ObtainToken(c *fiber.Ctx) error {
 		RefreshToken: refresh,
 	})
 }
+
 func (ac *Controller) ObtainTokenRefresh(c *fiber.Ctx) error {
 	var input RefreshTokenDTO
 	if err := c.BodyParser(&input); err != nil {

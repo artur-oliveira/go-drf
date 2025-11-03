@@ -3,68 +3,51 @@ package auth
 import (
 	controllers "grf/core/controller"
 	"grf/core/pagination"
+	"grf/core/repository"
+	"grf/core/service"
+	"strconv"
 
 	"github.com/go-playground/validator/v10"
 	"gorm.io/gorm"
 )
 
-type PermissionController struct {
-	*controllers.GenericController[
-		*Permission,
-		*PermissionCreateDTO,
-		*PermissionUpdateDTO,
-		*PermissionPatchDTO,
-		*PermissionResponseDTO,
-		*PermissionFilterSet,
-	]
-}
-
 func NewDefaultPermissionController(
 	db *gorm.DB,
-	validator *validator.Validate,
-) *PermissionController {
-	PermissionPaginator := pagination.NewLimitOffsetPagination[*Permission](
-		10,
-		100,
+	validate *validator.Validate,
+) *controllers.GenericController[
+	*Permission, *PermissionCreateDTO, *PermissionUpdateDTO, *PermissionPatchDTO, *PermissionResponseDTO, *PermissionFilterSet, IDType,
+] {
+
+	repo := repository.NewGenericRepository[*Permission, IDType](
+		&repository.Config[*Permission, IDType]{
+			DB:       db,
+			NewModel: func() *Permission { return new(Permission) },
+		},
 	)
 
-	PermissionConfig := &controllers.ControllerConfig[
-		*Permission,
-		*PermissionCreateDTO,
-		*PermissionUpdateDTO,
-		*PermissionPatchDTO,
-		*PermissionResponseDTO,
-		*PermissionFilterSet,
+	svc := service.NewGenericService(
+		&service.ServiceConfig[*Permission, *PermissionCreateDTO, *PermissionUpdateDTO, *PermissionPatchDTO, *PermissionResponseDTO, *PermissionFilterSet, IDType]{
+			Repo:             repo,
+			MapCreateToModel: MapCreateToPermission,
+			MapUpdateToModel: MapUpdateToPermission,
+		},
+	)
+
+	paginator := pagination.NewLimitOffsetPagination[*Permission](10, 100)
+	config := &controllers.ControllerConfig[
+		*Permission, *PermissionCreateDTO, *PermissionUpdateDTO, *PermissionPatchDTO, *PermissionResponseDTO, *PermissionFilterSet, IDType,
 	]{
-		DB:        db,
-		Validator: validator,
-		Paginator: PermissionPaginator,
-
-		NewFilterSet: func() *PermissionFilterSet {
-			return new(PermissionFilterSet)
+		Service:       svc,
+		Validator:     validate,
+		Paginator:     paginator,
+		MapToResponse: MapPermissionToResponse,
+		NewFilterSet:  func() *PermissionFilterSet { return new(PermissionFilterSet) },
+		NewPatchDTO:   func() *PermissionPatchDTO { return new(PermissionPatchDTO) },
+		ParseID: func(s string) (IDType, error) {
+			id, err := strconv.ParseUint(s, 10, 64)
+			return id, err
 		},
-		NewPatchDTO: func() *PermissionPatchDTO {
-			return new(PermissionPatchDTO)
-		},
-
-		MapToResponse:    MapPermissionToResponse,
-		MapCreateToModel: MapCreateToPermission,
-		MapUpdateToModel: MapUpdateToPermission,
 	}
-	return NewPermissionController(PermissionConfig)
-}
 
-func NewPermissionController(
-	config *controllers.ControllerConfig[
-		*Permission,
-		*PermissionCreateDTO,
-		*PermissionUpdateDTO,
-		*PermissionPatchDTO,
-		*PermissionResponseDTO,
-		*PermissionFilterSet,
-	],
-) *PermissionController {
-	return &PermissionController{
-		GenericController: controllers.NewGenericController(config),
-	}
+	return controllers.NewGenericController(config)
 }

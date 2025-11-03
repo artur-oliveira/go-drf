@@ -13,6 +13,9 @@ type CursorPagination[T any] struct {
 	MaxLimit       int
 	OrderByColumn  string
 	OrderDirection string
+
+	limit  int
+	cursor string
 }
 
 func NewCursorPagination[T any](defaultLimit, maxLimit int, column, direction string) *CursorPagination[T] {
@@ -36,7 +39,7 @@ func NewCursorPagination[T any](defaultLimit, maxLimit int, column, direction st
 	}
 }
 
-func (p *CursorPagination[T]) Paginate(c *fiber.Ctx, db *gorm.DB) (*Response[T], error) {
+func (p *CursorPagination[T]) Bind(c *fiber.Ctx) error {
 	limit, _ := strconv.Atoi(c.Query("limit", strconv.Itoa(p.DefaultLimit)))
 	cursor := c.Query("cursor", "")
 
@@ -47,6 +50,12 @@ func (p *CursorPagination[T]) Paginate(c *fiber.Ctx, db *gorm.DB) (*Response[T],
 		limit = p.DefaultLimit
 	}
 
+	p.limit = limit
+	p.cursor = cursor
+	return nil
+}
+
+func (p *CursorPagination[T]) Paginate(db *gorm.DB) (*Response[T], error) {
 	direction := "asc"
 	comparison := ">"
 	if p.OrderDirection == "DESC" {
@@ -55,22 +64,21 @@ func (p *CursorPagination[T]) Paginate(c *fiber.Ctx, db *gorm.DB) (*Response[T],
 	}
 
 	var results []T
-
 	query := db.Order(p.OrderByColumn + " " + direction)
 
-	if cursor != "" {
-		query = query.Where(p.OrderByColumn+" "+comparison+" ?", cursor)
+	if p.cursor != "" {
+		query = query.Where(p.OrderByColumn+" "+comparison+" ?", p.cursor)
 	}
 
-	if err := query.Limit(limit + 1).Find(&results).Error; err != nil {
+	if err := query.Limit(p.limit + 1).Find(&results).Error; err != nil {
 		return nil, err
 	}
 
 	resp := &Response[T]{Count: nil}
 
-	if len(results) > limit {
+	if len(results) > p.limit {
 		resp.HasNext = true
-		resp.Results = results[:limit]
+		resp.Results = results[:p.limit]
 	} else {
 		resp.HasNext = false
 		resp.Results = results
