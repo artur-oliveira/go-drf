@@ -1,7 +1,7 @@
 package server
 
 import (
-	"grf/config"
+	"grf/core/config"
 	"grf/core/middleware"
 
 	"github.com/go-playground/validator/v10"
@@ -15,6 +15,7 @@ type App struct {
 	DB        *gorm.DB
 	Validator *validator.Validate
 
-	AuthMw *middleware.AuthMiddleware
+	I18nMw *middleware.I18NMiddleware
+	AuthMw *middleware.AuthenticationMiddleware
 	PermMw *middleware.PermissionMiddleware
 }

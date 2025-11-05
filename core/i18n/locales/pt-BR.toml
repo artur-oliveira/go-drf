@@ -1,0 +1,25 @@
+# Auth Errors
+invalid_basic_credentials = "Autenticação Basic inválida (esperado: Basic <base64(usuario:senha)>)"
+invalid_jwt_credentials = "Autenticação JWT inválida (esperado: Bearer <token>)"
+invalid_credentials = "Credenciais inválidas"
+inactive_user = "Usuário inativo"
+auth_invalid_or_not_provided = "Token de autenticação não fornecido ou inválido"
+incorrect_old_password = "Senha antiga incorreta"
+incorrect_new_password = "As senhas não correspondem"
+
+# Application errors
+error_not_found = "Não encontrado"
+
+# Server Errors
+unexpected_server_error = "Ocorreu um erro inesperado"
+
+# Controller Errors
+invalid_payload = "Payload inválido."
+invalid_query_params = "Parâmetros de query inválidos."
+paginator_required = "O Paginador é obrigatório"
+invalid_pagination_params = "Parâmetros de paginação inválidos."
+id_required = "O ID é obrigatório na URL."
+
+# Group Service Errors
+invalid_permissions = "Uma ou mais permissões são inválidas"
+error_query_permissions = "Erro ao buscar permissões"

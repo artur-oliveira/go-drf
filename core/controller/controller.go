@@ -26,7 +26,7 @@ type GenericController[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F 
 	ParseID func(s string) (ID, error)
 }
 
-type ControllerConfig[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F filterset.IFilterSet, ID comparable] struct {
+type Config[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F filterset.IFilterSet, ID comparable] struct {
 	Service   service.IService[T, C, U, P, R, F, ID]
 	Validator *validator.Validate
 	Paginator pagination.IPagination[T]
@@ -39,11 +39,11 @@ type ControllerConfig[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F f
 }
 
 func NewGenericController[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F filterset.IFilterSet, ID comparable](
-	config *ControllerConfig[T, C, U, P, R, F, ID],
+	config *Config[T, C, U, P, R, F, ID],
 ) *GenericController[T, C, U, P, R, F, ID] {
 
 	if config.Service == nil || config.Validator == nil || config.ParseID == nil || config.MapToResponse == nil {
-		panic("Controlador Genérico: Service, Validator, ParseID e MapToResponse não podem ser nulos")
+		panic("GenericController: Service, Validator, ParseID e MapToResponse are required")
 	}
 
 	return &GenericController[T, C, U, P, R, F, ID]{
@@ -60,13 +60,13 @@ func NewGenericController[T models.IModel, C any, U any, P dto.IPatchDTO, R any,
 func (h *GenericController[T, C, U, P, R, F, ID]) List(c *fiber.Ctx) error {
 	filters := h.NewFilterSet()
 	if err := filters.Bind(c); err != nil {
-		return exceptions.NewBadRequest("Parâmetros de filtro inválidos", err)
+		return exceptions.NewBadRequest("invalid_query_params", err)
 	}
 	if h.Paginator == nil {
-		return exceptions.NewInternal(errors.New("paginador não configurado"))
+		return exceptions.NewInternal(errors.New("paginator_required"))
 	}
 	if err := h.Paginator.Bind(c); err != nil {
-		return exceptions.NewBadRequest("Parâmetros de paginação inválidos", err)
+		return exceptions.NewBadRequest("invalid_pagination_params", err)
 	}
 
 	paginatedResponse, err := h.Service.List(filters, h.Paginator)
@@ -89,7 +89,7 @@ func (h *GenericController[T, C, U, P, R, F, ID]) List(c *fiber.Ctx) error {
 func (h *GenericController[T, C, U, P, R, F, ID]) Create(c *fiber.Ctx) error {
 	var input C
 	if err := c.BodyParser(&input); err != nil {
-		return exceptions.NewBadRequest("Payload inválido", err)
+		return exceptions.NewBadRequest("invalid_payload", err)
 	}
 	if err := h.Validator.Struct(input); err != nil {
 		return err
@@ -107,7 +107,7 @@ func (h *GenericController[T, C, U, P, R, F, ID]) Create(c *fiber.Ctx) error {
 func (h *GenericController[T, C, U, P, R, F, ID]) Retrieve(c *fiber.Ctx) error {
 	id, err := h.ParseID(c.Params("id"))
 	if err != nil {
-		return exceptions.NewBadRequest("ID inválido", err)
+		return exceptions.NewBadRequest("id_required", err)
 	}
 
 	record, err := h.Service.GetByID(id)
@@ -122,12 +122,12 @@ func (h *GenericController[T, C, U, P, R, F, ID]) Retrieve(c *fiber.Ctx) error {
 func (h *GenericController[T, C, U, P, R, F, ID]) Update(c *fiber.Ctx) error {
 	id, err := h.ParseID(c.Params("id"))
 	if err != nil {
-		return exceptions.NewBadRequest("ID inválido", err)
+		return exceptions.NewBadRequest("id_required", err)
 	}
 
 	var input U
 	if err := c.BodyParser(&input); err != nil {
-		return exceptions.NewBadRequest("Payload inválido", err)
+		return exceptions.NewBadRequest("invalid_payload", err)
 	}
 	if err := h.Validator.Struct(input); err != nil {
 		return err
@@ -145,12 +145,12 @@ func (h *GenericController[T, C, U, P, R, F, ID]) Update(c *fiber.Ctx) error {
 func (h *GenericController[T, C, U, P, R, F, ID]) PartialUpdate(c *fiber.Ctx) error {
 	id, err := h.ParseID(c.Params("id"))
 	if err != nil {
-		return exceptions.NewBadRequest("ID inválido", err)
+		return exceptions.NewBadRequest("id_required", err)
 	}
 
 	patchInput := h.NewPatchDTO()
 	if err := c.BodyParser(patchInput); err != nil {
-		return exceptions.NewBadRequest("Payload inválido", err)
+		return exceptions.NewBadRequest("invalid_payload", err)
 	}
 	if err := h.Validator.Struct(patchInput); err != nil {
 		return err
@@ -168,7 +168,7 @@ func (h *GenericController[T, C, U, P, R, F, ID]) PartialUpdate(c *fiber.Ctx) er
 func (h *GenericController[T, C, U, P, R, F, ID]) Delete(c *fiber.Ctx) error {
 	id, err := h.ParseID(c.Params("id"))
 	if err != nil {
-		return exceptions.NewBadRequest("ID inválido", err)
+		return exceptions.NewBadRequest("id_required", err)
 	}
 
 	if err := h.Service.Delete(id); err != nil {

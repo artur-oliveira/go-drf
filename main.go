@@ -1,8 +1,8 @@
 package main
 
 import (
-	"grf/bootstrap"
-	"grf/config"
+	"grf/core/bootstrap"
+	"grf/core/config"
 	"log"
 )
 

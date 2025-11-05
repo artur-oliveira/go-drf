@@ -1,9 +1,11 @@
 package auth
 
+import "grf/domain/auth/model"
+
 func GetModels() []interface{} {
 	return []interface{}{
-		&Permission{},
-		&Group{},
-		&User{},
+		&model.Permission{},
+		&model.Group{},
+		&model.User{},
 	}
 }

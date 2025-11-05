@@ -3,7 +3,7 @@ package middleware
 import (
 	"fmt"
 	"grf/core/exceptions"
-	"grf/domain/auth"
+	"grf/domain/auth/model"
 
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -24,14 +24,14 @@ func (m *PermissionMiddleware) RequirePerm(module, action string) fiber.Handler 
 			return exceptions.NewError(401, "Usuário não autenticado", nil)
 		}
 
-		user, ok := userLocal.(*auth.User)
+		user, ok := userLocal.(*model.User)
 		if !ok {
 			return exceptions.NewInternal(fmt.Errorf("c.Locals(\"user\") não é do tipo *auth.User"))
 		}
 
 		if !user.HasPerm(m.DB, module, action) {
 			msg := fmt.Sprintf("Permissão necessária: %s.%s", module, action)
-			return exceptions.NewError(403, msg, nil)
+			return exceptions.NewForbidden(msg, nil)
 		}
 
 		return c.Next()

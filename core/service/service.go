@@ -24,7 +24,7 @@ type GenericService[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F fil
 	MapUpdateToModel func(dto U, model T) T
 }
 
-type ServiceConfig[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F filterset.IFilterSet, ID comparable] struct {
+type Config[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F filterset.IFilterSet, ID comparable] struct {
 	Repo repository.IRepository[T, ID]
 
 	MapCreateToModel func(dto C) T
@@ -32,7 +32,7 @@ type ServiceConfig[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F filt
 }
 
 func NewGenericService[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F filterset.IFilterSet, ID comparable](
-	config *ServiceConfig[T, C, U, P, R, F, ID],
+	config *Config[T, C, U, P, R, F, ID],
 ) IService[T, C, U, P, R, F, ID] {
 
 	if config.Repo == nil || config.MapCreateToModel == nil || config.MapUpdateToModel == nil {

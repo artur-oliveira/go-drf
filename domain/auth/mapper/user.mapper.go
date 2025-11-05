@@ -1,0 +1,59 @@
+package mapper
+
+import (
+	"fmt"
+	"grf/domain/auth/dto"
+	"grf/domain/auth/model"
+)
+
+func MapUserToResponse(user *model.User) *dto.UserResponseDTO {
+	return &dto.UserResponseDTO{
+		ID:          user.ID,
+		Username:    user.Username,
+		Email:       user.Email,
+		FirstName:   user.FirstName,
+		LastName:    user.LastName,
+		IsActive:    user.IsActive,
+		IsStaff:     user.IsStaff,
+		IsSuperuser: user.IsSuperuser,
+		LastLogin:   user.LastLogin,
+		CreatedAt:   user.CreatedAt,
+	}
+}
+
+func MapCreateToUser(dto *dto.UserCreateDTO) *model.User {
+	user := model.User{
+		Username:  dto.Username,
+		Email:     dto.Email,
+		FirstName: dto.FirstName,
+		LastName:  dto.LastName,
+		IsActive:  true,
+		IsStaff:   false,
+	}
+
+	if err := user.SetPassword(dto.Password); err != nil {
+		panic(fmt.Sprintf("Falha crítica ao gerar hash de senha: %v", err))
+	}
+
+	if dto.IsActive != nil {
+		user.IsActive = *dto.IsActive
+	}
+	if dto.IsStaff != nil {
+		user.IsStaff = *dto.IsStaff
+	}
+
+	return &user
+}
+
+func MapUpdateToUser(dto *dto.UserUpdateDTO, user *model.User) *model.User {
+
+	user.Username = dto.Username
+	user.Email = dto.Email
+	user.FirstName = dto.FirstName
+	user.LastName = dto.LastName
+	user.IsActive = dto.IsActive
+	user.IsStaff = dto.IsStaff
+	user.IsSuperuser = dto.IsSuperuser
+
+	return user
+}

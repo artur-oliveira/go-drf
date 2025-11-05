@@ -1,0 +1,33 @@
+# Auth Errors
+invalid_basic_credentials = "Invalid Basic authentication (expected: Basic <base64(username:password)>)"
+invalid_jwt_credentials = "Invalid JWT authentication (expected: Bearer <token>)"
+invalid_credentials = "Invalid credentials"
+inactive_user = "User is inactive"
+auth_invalid_or_not_provided = "Authentication token not provided or invalid"
+incorrect_old_password = "Incorrect old password"
+incorrect_new_password = "The new passwords do not match"
+
+# Application errors
+error_not_found = "Not found"
+
+# Server Errors
+unexpected_server_error = "An unexpected error occurred"
+
+# Controller Errors
+invalid_payload = "Invalid payload."
+invalid_query_params = "Invalid query parameters."
+paginator_required = "Paginator is required"
+invalid_pagination_params = "Invalid pagination parameters."
+id_required = "ID is required in the URL."
+
+# Group Service Errors
+invalid_permissions = "One or more permissions are invalid"
+error_query_permissions = "Error querying permissions"
+
+# --- Validation Errors (Crucial for 422 responses) ---
+error_validation = "One or more fields are invalid."
+validation_required = "This field is required."
+validation_email = "This field must be a valid email address."
+validation_min = "This field must be at least {Param} characters."
+validation_max = "This field must be at most {Param} characters."
+validation_gt = "This field must be greater than {Param}."

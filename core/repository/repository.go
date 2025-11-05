@@ -31,7 +31,7 @@ func NewGenericRepository[T models.IModel, ID comparable](
 	config *Config[T, ID],
 ) IRepository[T, ID] {
 	if config.DB == nil || config.NewModel == nil {
-		panic("GenericRepository: DB e NewModel factory não podem ser nulos")
+		panic("GenericRepository: DB and NewModel cannot be nil")
 	}
 	return &GenericRepository[T, ID]{
 		DB:       config.DB,
