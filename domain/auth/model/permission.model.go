@@ -15,3 +15,5 @@ type Permission struct {
 }
 
 func (Permission) TableName() string { return "auth_permission" }
+
+func (Permission) ModuleName() string { return "permission" }

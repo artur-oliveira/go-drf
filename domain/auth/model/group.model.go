@@ -15,3 +15,5 @@ type Group struct {
 }
 
 func (Group) TableName() string { return "auth_group" }
+
+func (Group) ModuleName() string { return "group" }

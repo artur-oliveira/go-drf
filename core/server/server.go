@@ -3,6 +3,7 @@ package server
 import (
 	"grf/core/config"
 	"grf/core/middleware"
+	"grf/core/permission"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
@@ -16,6 +17,9 @@ type App struct {
 	Validator *validator.Validate
 
 	I18nMw *middleware.I18NMiddleware
-	AuthMw *middleware.AuthenticationMiddleware
-	PermMw *middleware.PermissionMiddleware
+
+	AllowAny                  permission.IPermission
+	IsAuthenticatedOrReadOnly permission.IPermission
+	IsAuthenticated           permission.IPermission
+	IsAdmin                   permission.IPermission
 }

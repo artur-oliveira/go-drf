@@ -7,6 +7,7 @@ import (
 	"grf/core/exceptions"
 	"grf/core/i18n"
 	"grf/core/middleware"
+	"grf/core/permission"
 	"grf/core/routes"
 	"grf/core/server"
 	"grf/core/validator"
@@ -36,12 +37,12 @@ func NewApp(cfg config.Config) (*server.App, error) {
 
 	app.Use(logger.New())
 
-	authMw := middleware.NewAuthenticationMiddleware(
-		auth.NewJWTAuthBackend(db, &cfg),
-		auth.NewBasicAuthBackend(db),
-	)
-	permMw := middleware.NewPermissionMiddleware(db)
+	jwtBackend := auth.NewJWTAuthBackend(db, &cfg)
+	basicBackend := auth.NewBasicAuthBackend(db)
+
 	i18nMw := middleware.NewI18NMiddleware(i18n.NewI18nService())
+
+	isAuthenticated := permission.NewIsAuthenticated(jwtBackend, basicBackend)
 
 	var bootstrapedApp = &server.App{
 		FiberApp:  app,
@@ -49,8 +50,14 @@ func NewApp(cfg config.Config) (*server.App, error) {
 		Validator: validator.GetValidator(),
 		I18nMw:    i18nMw,
 		Config:    &cfg,
-		AuthMw:    authMw,
-		PermMw:    permMw,
+
+		AllowAny:        &permission.AllowAny{},
+		IsAuthenticated: isAuthenticated,
+		IsAdmin:         &permission.IsAdmin{},
+		IsAuthenticatedOrReadOnly: permission.NewOr(
+			&permission.IsReadOnly{},
+			isAuthenticated,
+		),
 	}
 
 	i18nMw.UseMiddleWare(

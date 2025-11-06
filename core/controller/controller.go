@@ -13,6 +13,15 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type ICRUDController interface {
+	List(c *fiber.Ctx) error
+	Create(c *fiber.Ctx) error
+	Retrieve(c *fiber.Ctx) error
+	Update(c *fiber.Ctx) error
+	PartialUpdate(c *fiber.Ctx) error
+	Delete(c *fiber.Ctx) error
+}
+
 type GenericController[T models.IModel, C any, U any, P dto.IPatchDTO, R any, F filterset.IFilterSet, ID comparable] struct {
 	Service   service.IService[T, C, U, P, R, F, ID]
 	Validator *validator.Validate
